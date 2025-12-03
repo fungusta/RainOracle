@@ -15,6 +15,8 @@ export interface OpenWeatherHourlyForecast {
   humidity: number;
   rain: number;
   pop: number;
+  condition: string;
+  description: string;
 }
 
 export interface OpenWeatherForecastItem {
@@ -79,3 +81,39 @@ export interface OpenWeatherCity {
   sunrise: number;
   sunset: number;
 }
+
+export type OpenWeatherCondition = 
+  "thunderstorm with light rain"
+|  "thunderstorm with rain"
+|  "thunderstorm with heavy rain"
+|  "light thunderstorm"
+|  "thunderstorm"
+|  "heavy thunderstorm"
+|  "ragged thunderstorm"
+|  "thunderstorm with light drizzle"
+|  "thunderstorm with drizzle"
+|  "thunderstorm with heavy drizzle"
+|  "light intensity drizzle"
+|  "drizzle"
+|  "heavy intensity drizzle"
+|  "light intensity drizzle rain"
+|  "drizzle rain"
+|  "heavy intensity drizzle rain"
+|  "shower rain and drizzle"
+|  "heavy shower rain and drizzle"
+|  "shower drizzle"
+|  "light rain"
+|  "moderate rain"
+|  "heavy intensity rain"
+|  "very heavy rain"
+|  "extreme rain"
+|  "freezing rain"
+|  "light intensity shower rain"
+|  "shower rain"
+|  "heavy intensity shower rain"
+|  "ragged shower rain"
+|  "clear sky"
+|  "few clouds: 11-25%"
+|  "scattered clouds: 25-50%"
+|  "broken clouds: 51-84%"
+|  "overcast clouds: 85-100%"

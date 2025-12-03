@@ -21,8 +21,8 @@ export type GovForecastType =
   | "Heavy Showers"
   | "Thundery Showers"
   | "Heavy Thundery Showers"
-  | "Heavy Thundery Showers with Gusty Winds";
-
+  | "Heavy Thundery Showers with Gusty Winds"
+  | "thunderstorm with light rain";
 
 export interface AreaMetadata {
     name: string;

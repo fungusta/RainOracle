@@ -1,25 +1,35 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { Sun, CloudRain } from "lucide-react";
+import { Sun, CloudRain, Check, ChevronsUpDown } from "lucide-react";
 import { getTimeString, isTomorrow, getHoursFromNow, getCurrentHour, hourToDateTime } from "@/utils/dateTimeUtils";
 import { UnifiedWeatherForecast } from "@/types/weather/weatherForecast";
+import { getCoordinatesFromLocation, getLocationsByArea, LocationName } from "@/utils/location";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const locationsByArea = getLocationsByArea();
 
 export default function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [selectedHour, setSelectedHour] = useState(12); // Default to noon, will be set on client
+  const [selectedLocationName, setSelectedLocationName] = useState<LocationName>();
+  const [selectedHour, setSelectedHour] = useState(getCurrentHour()); // Default to noon, will be set on client
   const [isDragging, setIsDragging] = useState(false);
   const [weatherData, setWeatherData] = useState<UnifiedWeatherForecast | null>(null);
+  const [comboboxOpen, setComboboxOpen] = useState(false);
   const circleRef = useRef<HTMLDivElement>(null);
 
   const currentHour = getCurrentHour();
 
-  useEffect(() => {
-    setSelectedHour(currentHour);
-    setLocation({ lat: 1.3521, lon: 103.8198 });
-  }, []);
+  const handleLocationChange = (locationName: string) => {
+    setSelectedLocationName(locationName as LocationName);
+    const coords = getCoordinatesFromLocation(locationName);
+    setLocation(coords);
+  };
 
   const fetchWeatherData = async (): Promise<UnifiedWeatherForecast> => {
     if (!location) {
@@ -39,7 +49,7 @@ export default function App() {
   };
 
   const handleCheckWeather = async () => {
-     if (!location) return; // Don't proceed if location is empty
+    if (!location) return; // Don't proceed if location is empty
 
     setIsLoading(true);
 
@@ -137,18 +147,107 @@ export default function App() {
           /* Initial State - Button with Inputs */
           <div className="flex flex-col items-center gap-6">
             {/* Location Input */}
-            <div className="w-80">
-              <label className="block text-gray-700 mb-2 ml-1">
-                Location
-              </label>
-              {/* <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Enter city name"
-                className="w-full px-6 py-4 glass rounded-2xl text-gray-800 placeholder-gray-500 transition-all duration-300 focus:outline-none focus:bg-white/40 focus:border-white/60"
-              /> */}
-            </div>
+            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={comboboxOpen}
+                  className="w-[280px] justify-between glass text-gray-700 shadow-lg transition-all duration-300"
+                >
+                  {selectedLocationName ?? "Select a location..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0 glass shadow-2xl">
+                <Command className="bg-transparent">
+                  <CommandInput placeholder="Search location..." className="border-b border-white/30" />
+                  <CommandList className="max-h-[300px]">
+                    <CommandEmpty className="text-gray-600">No location found.</CommandEmpty>
+                    <CommandGroup heading="Central" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                      {locationsByArea.central.map((loc) => (
+                        <CommandItem
+                          key={loc}
+                          value={loc}
+                          onSelect={(value) => {
+                            handleLocationChange(value);
+                            setComboboxOpen(false);
+                          }}
+                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                        >
+                          <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
+                          {loc}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                    <CommandGroup heading="North" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                      {locationsByArea.north.map((loc) => (
+                        <CommandItem
+                          key={loc}
+                          value={loc}
+                          onSelect={(value) => {
+                            handleLocationChange(value);
+                            setComboboxOpen(false);
+                          }}
+                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                        >
+                          <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
+                          {loc}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                    <CommandGroup heading="South" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                      {locationsByArea.south.map((loc) => (
+                        <CommandItem
+                          key={loc}
+                          value={loc}
+                          onSelect={(value) => {
+                            handleLocationChange(value);
+                            setComboboxOpen(false);
+                          }}
+                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                        >
+                          <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
+                          {loc}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                    <CommandGroup heading="East" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                      {locationsByArea.east.map((loc) => (
+                        <CommandItem
+                          key={loc}
+                          value={loc}
+                          onSelect={(value) => {
+                            handleLocationChange(value);
+                            setComboboxOpen(false);
+                          }}
+                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                        >
+                          <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
+                          {loc}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                    <CommandGroup heading="West" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                      {locationsByArea.west.map((loc) => (
+                        <CommandItem
+                          key={loc}
+                          value={loc}
+                          onSelect={(value) => {
+                            handleLocationChange(value);
+                            setComboboxOpen(false);
+                          }}
+                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                        >
+                          <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
+                          {loc}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             {/* Circular Time Selector */}
             <div
@@ -173,8 +272,8 @@ export default function App() {
                     <div
                       key={i}
                       className={`absolute w-2 h-2 rounded-full transition-all duration-200 ${isSelected
-                          ? "bg-yellow-400 scale-150"
-                          : "bg-white/60"
+                        ? "bg-yellow-400 scale-150"
+                        : "bg-white/60"
                         }`}
                       style={{
                         left: `${x}px`,
@@ -290,7 +389,7 @@ export default function App() {
                 <Sun className="w-16 h-16 text-yellow-400" />
                 <div className="text-center">
                   <p className="text-gray-600 mb-1">
-                    {location?.lat}, {location?.lon} {isTomorrow(selectedHour, currentHour) && <span className="font-semibold text-gray-800">Tomorrow</span>} at {getTimeString(selectedHour)}
+                    {selectedLocationName} {isTomorrow(selectedHour, currentHour) && <span className="font-semibold text-gray-800">Tomorrow</span>} at {getTimeString(selectedHour)}
                   </p>
                   <p className="text-gray-800 text-2xl mb-4">
                     {weatherData?.forecast ?? "Weather data unavailable"}
@@ -299,7 +398,7 @@ export default function App() {
                     Temperature
                   </p>
                   <p className="text-8xl text-gray-800">
-                    {weatherData ? Math.round(weatherData.temp) : "--"}°
+                    {weatherData?.temp ? Math.round(weatherData.temp) : "--"}°
                   </p>
                   <p className="text-gray-600 text-lg mt-2">
                     Celsius
@@ -331,7 +430,6 @@ export default function App() {
               onClick={() => {
                 setShowWeather(false);
                 setWeatherData(null);
-                setLocation(null);
                 setSelectedHour(getCurrentHour());
               }}
               className="mt-4 px-8 py-3 glass rounded-xl text-gray-700 transition-all duration-300 hover:bg-white/40 hover:border-white/60"

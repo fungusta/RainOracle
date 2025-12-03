@@ -66,7 +66,6 @@ export function hourToDateTime(hour: number, currentHour?: number): Date {
   if (hour < targetHour) {
     datetime.setDate(datetime.getDate() + 1);
   }
-  
   return datetime;
 }
 

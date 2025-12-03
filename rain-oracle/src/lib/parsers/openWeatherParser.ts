@@ -15,6 +15,9 @@ export function parseOpenWeatherForecast(data: OpenWeatherHourlyResponse, dateti
             : closest;
     }, data.list[0]);
     
+    const weatherCondition = closestItem.weather?.[0];
+    
+    console.log(weatherCondition);
     return {
         temp: convertKelvinToCelsius(closestItem.main.temp),
         feels_like: convertKelvinToCelsius(closestItem.main.feels_like),
@@ -23,6 +26,8 @@ export function parseOpenWeatherForecast(data: OpenWeatherHourlyResponse, dateti
         pressure: closestItem.main.pressure,
         humidity: closestItem.main.humidity,
         rain: closestItem.rain?.["1h"] ?? 0.0,
-        pop: closestItem.pop
+        pop: closestItem.pop,
+        condition: weatherCondition?.main ?? "",
+        description: weatherCondition?.description ?? ""
     };
 }

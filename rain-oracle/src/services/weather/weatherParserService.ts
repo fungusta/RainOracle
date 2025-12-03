@@ -1,6 +1,6 @@
 import { Gov2HourResponse } from "@/types/weather/gov2hour";
 import { Gov24HourResponse } from "@/types/weather/gov24hour";
-import { OpenWeatherHourlyResponse } from "@/types/weather/openweatherHourly";
+import { OpenWeatherHourlyForecast, OpenWeatherHourlyResponse } from "@/types/weather/openweatherHourly";
 import { UnifiedWeatherForecast } from "@/types/weather/weatherForecast";
 import {
   parseGov2HourForecast,
@@ -15,7 +15,7 @@ interface ParseWeatherParams {
   datetime: Date;
   dataGov2h?: Gov2HourResponse;
   dataGov24h?: Gov24HourResponse;
-  openWeather: OpenWeatherHourlyResponse;
+  openWeather?: OpenWeatherHourlyResponse;
 }
 
 export function parseWeatherForecast({
@@ -26,7 +26,13 @@ export function parseWeatherForecast({
   dataGov24h,
   openWeather,
 }: ParseWeatherParams): UnifiedWeatherForecast {
-  const openWeatherForecast = parseOpenWeatherForecast(openWeather, datetime);
+
+  let openWeatherForecast: OpenWeatherHourlyForecast | null = null;
+  if (openWeather) {
+    openWeatherForecast = parseOpenWeatherForecast(openWeather, datetime);
+  }
+  
+  console.log(openWeatherForecast);
 
   if (dataGov2h) {
     const govForecast = parseGov2HourForecast(dataGov2h, lat, lon);
@@ -38,5 +44,5 @@ export function parseWeatherForecast({
     return combineWeatherForecasts(govForecast, openWeatherForecast);
   }
 
-  throw new Error("No government forecast data provided");
+  return combineWeatherForecasts(null, openWeatherForecast);
 }

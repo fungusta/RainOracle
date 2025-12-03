@@ -7,11 +7,19 @@ export async function getWeatherForecast(lat: number, lon: number, datetime: Dat
     const hoursFromNow = getHoursFromNow(datetime.getHours(), getCurrentHour());
     
     if (hoursFromNow <= 2) {
-      const [dataGov2h, openWeather] = await Promise.all([
+      const [dataGov2hResult, openWeatherResult] = await Promise.allSettled([
         fetchDataGov2Hour(datetime),
         fetchOpenWeatherHourly(lat, lon)
       ]);
   
+      const dataGov2h = dataGov2hResult.status === 'fulfilled' ? dataGov2hResult.value : undefined;
+      const openWeather = openWeatherResult.status === 'fulfilled' ? openWeatherResult.value : undefined;
+      
+      // Only throw if BOTH APIs failed
+      if (!dataGov2h && !openWeather) {
+        throw new Error("Both APIs failed: openWeather and dataGov2h");
+      }
+
       const weatherForecast = parseWeatherForecast({
         lat,
         lon,
@@ -22,11 +30,19 @@ export async function getWeatherForecast(lat: number, lon: number, datetime: Dat
 
       return weatherForecast;
     } else if (hoursFromNow <= 24) {
-      const [dataGov24h, openWeather] = await Promise.all([
+      const [dataGov24hResult, openWeatherResult] = await Promise.allSettled([
         fetchDataGov24Hour(datetime),
         fetchOpenWeatherHourly(lat, lon)
       ]);
   
+      const dataGov24h = dataGov24hResult.status === 'fulfilled' ? dataGov24hResult.value : undefined;
+      const openWeather = openWeatherResult.status === 'fulfilled' ? openWeatherResult.value : undefined;
+      
+      // Only throw if BOTH APIs failed
+      if (!dataGov24h && !openWeather) {
+        throw new Error("Both APIs failed: openWeather and dataGov24h");
+      }
+
       const weatherForecast = parseWeatherForecast({
         lat,
         lon,

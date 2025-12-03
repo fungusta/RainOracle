@@ -1,9 +1,10 @@
 import { GovForecastType } from "./gov";
+import { OpenWeatherCondition } from "./openweatherHourly";
 
 export interface UnifiedWeatherForecast {
-  temp: number;
-  feels_like: number;
-  rain: number;
-  pop: number;
-  forecast: GovForecastType;
+  temp: number | null;
+  feels_like: number | null;
+  rain: number | null;
+  pop: number | null;
+  forecast: GovForecastType | OpenWeatherCondition | string;
 }

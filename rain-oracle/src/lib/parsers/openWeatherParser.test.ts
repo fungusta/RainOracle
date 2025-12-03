@@ -134,6 +134,8 @@ describe("parseOpenWeatherForecast", () => {
     expect(result.rain).toEqual(1.44);
     expect(result.pressure).toBe(1010);
     expect(result.humidity).toBe(85);
+    expect(result.condition).toBe("Rain");
+    expect(result.description).toBe("moderate rain");
   });
 
   it("should return closest forecast when datetime falls between forecast times", () => {
@@ -162,6 +164,8 @@ describe("parseOpenWeatherForecast", () => {
 
     expect(result.rain).toEqual(0.12);
     expect(result.pop).toBe(0.26);
+    expect(result.condition).toBe("Rain");
+    expect(result.description).toBe("light rain");
   });
 
   it("should handle forecast without rain data", () => {
@@ -171,6 +175,8 @@ describe("parseOpenWeatherForecast", () => {
     // When there's no rain, rain should be undefined or handled gracefully
     expect(result.rain).toEqual(0);
     expect(result.pop).toBe(0.01);
+    expect(result.condition).toBe("Clouds");
+    expect(result.description).toBe("broken clouds");
   });
 
   it("should throw error when list is empty", () => {
@@ -209,6 +215,32 @@ describe("parseOpenWeatherForecast", () => {
 
     expect(result.pressure).toBe(1010);
     expect(result.humidity).toBe(85);
+  });
+
+  it("should extract main and description from weather array", () => {
+    const datetime = new Date(1764738000 * 1000);
+    const result = parseOpenWeatherForecast(mockResponse, datetime);
+
+    expect(result.condition).toBe("Clouds");
+    expect(result.description).toBe("broken clouds");
+  });
+
+  it("should handle missing weather array gracefully", () => {
+    const responseWithoutWeather: OpenWeatherHourlyResponse = {
+      ...mockResponse,
+      list: [
+        {
+          ...mockResponse.list[0],
+          weather: [],
+        },
+      ],
+    };
+
+    const datetime = new Date(1764738000 * 1000);
+    const result = parseOpenWeatherForecast(responseWithoutWeather, datetime);
+
+    expect(result.condition).toBe("");
+    expect(result.description).toBe("");
   });
 });
 
