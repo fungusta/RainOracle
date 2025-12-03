@@ -1,3 +1,5 @@
+import { AreaMetadata, GovForecastType } from "./gov";
+
 export interface Gov2HourResponse {
     code: number;
     errorMsg: string | null;
@@ -5,14 +7,6 @@ export interface Gov2HourResponse {
       area_metadata: AreaMetadata[];
       items: TwoHourForecastItem[];
       paginationToken?: string;
-    };
-  }
-  
-  export interface AreaMetadata {
-    name: string;
-    label_location: {
-      latitude: number;
-      longitude: number;
     };
   }
   
@@ -29,31 +23,10 @@ export interface Gov2HourResponse {
   
   export interface AreaForecast {
     area: string;
-    forecast: TwoHourForecastType;
+    forecast: GovForecastType;
   }
-  
-  export type TwoHourForecastType =
-    | "Fair"
-    | "Fair (Day)"
-    | "Fair (Night)"
-    | "Fair and Warm"
-    | "Partly Cloudy"
-    | "Partly Cloudy (Day)"
-    | "Partly Cloudy (Night)"
-    | "Cloudy"
-    | "Hazy"
-    | "Slightly Hazy"
-    | "Windy"
-    | "Mist"
-    | "Fog"
-    | "Light Rain"
-    | "Moderate Rain"
-    | "Heavy Rain"
-    | "Passing Showers"
-    | "Light Showers"
-    | "Showers"
-    | "Heavy Showers"
-    | "Thundery Showers"
-    | "Heavy Thundery Showers"
-    | "Heavy Thundery Showers with Gusty Winds";
-  
+
+    export interface Gov2HourForecast {
+    nearestStation: string;
+    forecast: GovForecastType;
+  }

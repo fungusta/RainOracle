@@ -1,18 +1,14 @@
+import { AreaMetadata, GovForecastType } from "./gov";
+
+export type SingaporeRegion = "north" | "south" | "east" | "west" | "central";
+
 export interface Gov24HourResponse {
     code: number;
     errorMsg: string | null;
     data: {
-      area_metadata: GovAreaMetadata[];
+      area_metadata?: AreaMetadata[];
       records: Gov24HourRecord[];
       paginationToken?: string;
-    };
-  }
-  
-  export interface GovAreaMetadata {
-    name: string;
-    label_location: {
-      latitude: number;
-      longitude: number;
     };
   }
   
@@ -71,29 +67,8 @@ export interface Gov24HourResponse {
     code: string;
     text: GovForecastType;
   }
-  
-  export type GovForecastType =
-    | "Fair"
-    | "Fair (Day)"
-    | "Fair (Night)"
-    | "Fair and Warm"
-    | "Partly Cloudy"
-    | "Partly Cloudy (Day)"
-    | "Partly Cloudy (Night)"
-    | "Cloudy"
-    | "Hazy"
-    | "Slightly Hazy"
-    | "Windy"
-    | "Mist"
-    | "Fog"
-    | "Light Rain"
-    | "Moderate Rain"
-    | "Heavy Rain"
-    | "Passing Showers"
-    | "Light Showers"
-    | "Showers"
-    | "Heavy Showers"
-    | "Thundery Showers"
-    | "Heavy Thundery Showers"
-    | "Heavy Thundery Showers with Gusty Winds";
-  
+
+  export interface Gov24HourForecast {
+    nearestStation: string;
+    forecast: GovForecastType;
+  }

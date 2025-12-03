@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Sun, CloudRain } from "lucide-react";
 import { getTimeString, isTomorrow, getHoursFromNow, getCurrentHour, hourToDateTime } from "@/utils/dateTimeUtils";
+import { UnifiedWeatherForecast } from "@/types/weather/weatherForecast";
 
 export default function App() {
   const [showWeather, setShowWeather] = useState(false);
@@ -10,6 +11,7 @@ export default function App() {
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [selectedHour, setSelectedHour] = useState(12); // Default to noon, will be set on client
   const [isDragging, setIsDragging] = useState(false);
+  const [weatherData, setWeatherData] = useState<UnifiedWeatherForecast | null>(null);
   const circleRef = useRef<HTMLDivElement>(null);
 
   const currentHour = getCurrentHour();
@@ -19,31 +21,37 @@ export default function App() {
     setLocation({ lat: 1.3521, lon: 103.8198 });
   }, []);
 
-  const fetchWeatherData = async () => {
-    try {
-      const datetime = hourToDateTime(selectedHour);
-      const response = await fetch(`/api/weather?latitude=${location?.lat}&longitude=${location?.lon}&datetime=${datetime.toISOString()}`);
-      const data = await response;
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
+  const fetchWeatherData = async (): Promise<UnifiedWeatherForecast> => {
+    if (!location) {
+      throw new Error("Location not set");
     }
+
+    const datetime = hourToDateTime(selectedHour);
+    const response = await fetch(
+      `/api/weather?latitude=${location.lat}&longitude=${location.lon}&datetime=${datetime.toISOString()}`,
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch weather data");
+    }
+
+    return response.json();
   };
 
-  // Mock weather data
-  const temperature = 72;
-  const precipitation = 25;
-  const condition = "Sunny"; // Weather condition: Sunny, Cloudy, Fair, Rainy, etc.
-
-  const handleCheckWeather = () => {
-    if (!location) return; // Don't proceed if location is empty
-
-    fetchWeatherData();
+  const handleCheckWeather = async () => {
+     if (!location) return; // Don't proceed if location is empty
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const response = await fetchWeatherData();
+      setWeatherData(response);
       setShowWeather(true);
-    }, 2000); // 2 second loading time
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Calculate hour from mouse position (0-23, where 0 = 12am at top)
@@ -285,16 +293,16 @@ export default function App() {
                     {location?.lat}, {location?.lon} {isTomorrow(selectedHour, currentHour) && <span className="font-semibold text-gray-800">Tomorrow</span>} at {getTimeString(selectedHour)}
                   </p>
                   <p className="text-gray-800 text-2xl mb-4">
-                    {condition}
+                    {weatherData?.forecast ?? "Weather data unavailable"}
                   </p>
                   <p className="text-gray-700 text-xl mb-2">
                     Temperature
                   </p>
                   <p className="text-8xl text-gray-800">
-                    {temperature}°
+                    {weatherData ? Math.round(weatherData.temp) : "--"}°
                   </p>
                   <p className="text-gray-600 text-lg mt-2">
-                    Fahrenheit
+                    Celsius
                   </p>
                 </div>
               </div>
@@ -309,7 +317,7 @@ export default function App() {
                     Precipitation
                   </p>
                   <p className="text-8xl text-gray-800">
-                    {precipitation}%
+                    {weatherData ? Math.round((weatherData.pop ?? 0) * 100) : "--"}%
                   </p>
                   <p className="text-gray-600 text-lg mt-2">
                     Chance of rain
@@ -322,6 +330,7 @@ export default function App() {
             <button
               onClick={() => {
                 setShowWeather(false);
+                setWeatherData(null);
                 setLocation(null);
                 setSelectedHour(getCurrentHour());
               }}

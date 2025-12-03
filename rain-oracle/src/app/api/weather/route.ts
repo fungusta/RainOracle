@@ -1,4 +1,4 @@
-import { getWeatherData } from "@/utils/weatherUtils";
+import { getWeatherForecast } from "@/services/weather/weatherService";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   // If datetime is not provided, use the current date/time
   const targetDate = datetime ? new Date(datetime) : new Date();
-  const weatherData = await getWeatherData(Number(latitude), Number(longitude), targetDate);
+  const weatherForecast = await getWeatherForecast(Number(latitude), Number(longitude), targetDate);
 
-  return NextResponse.json(weatherData);
+  return NextResponse.json(weatherForecast);
 }
