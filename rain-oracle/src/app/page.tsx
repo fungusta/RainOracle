@@ -142,7 +142,7 @@ export default function App() {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100">
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center h-full">
+      <div className="relative z-10 flex items-center justify-center h-full px-4">
         {!showWeather ? (
           /* Initial State - Button with Inputs */
           <div className="flex flex-col items-center gap-6">
@@ -382,25 +382,25 @@ export default function App() {
           </div>
         ) : (
           /* Weather Display State */
-          <div className="flex flex-col items-center gap-8 animate-fade-in">
+          <div className="flex flex-col items-center gap-6 animate-fade-in">
             {/* Temperature Card */}
-            <div className="glass rounded-3xl p-12 shadow-2xl min-w-[400px]">
+            <div className="glass rounded-3xl p-8 shadow-2xl min-w-[320px] max-w-[360px] w-full">
               <div className="flex flex-col items-center gap-4">
-                <Sun className="w-16 h-16 text-yellow-400" />
+                <Sun className="w-12 h-12 text-yellow-400" />
                 <div className="text-center">
-                  <p className="text-gray-600 mb-1">
+                  <p className="text-gray-600 text-sm mb-1">
                     {selectedLocationName} {isTomorrow(selectedHour, currentHour) && <span className="font-semibold text-gray-800">Tomorrow</span>} at {getTimeString(selectedHour)}
                   </p>
-                  <p className="text-gray-800 text-2xl mb-4">
+                  <p className="text-gray-800 text-xl mb-3">
                     {weatherData?.forecast ?? "Weather data unavailable"}
                   </p>
-                  <p className="text-gray-700 text-xl mb-2">
+                  <p className="text-gray-700 text-lg mb-1">
                     Temperature
                   </p>
-                  <p className="text-8xl text-gray-800">
+                  <p className="text-6xl text-gray-800">
                     {weatherData?.temp ? Math.round(weatherData.temp) : "--"}°
                   </p>
-                  <p className="text-gray-600 text-lg mt-2">
+                  <p className="text-gray-600 text-base mt-1">
                     Celsius
                   </p>
                 </div>
@@ -408,17 +408,17 @@ export default function App() {
             </div>
 
             {/* Precipitation Card */}
-            <div className="glass rounded-3xl p-12 shadow-2xl min-w-[400px]">
+            <div className="glass rounded-3xl p-8 shadow-2xl min-w-[320px] max-w-[360px] w-full">
               <div className="flex flex-col items-center gap-4">
-                <CloudRain className="w-16 h-16 text-blue-400" />
+                <CloudRain className="w-12 h-12 text-blue-400" />
                 <div className="text-center">
-                  <p className="text-gray-700 text-xl mb-2">
+                  <p className="text-gray-700 text-lg mb-1">
                     Precipitation
                   </p>
-                  <p className="text-8xl text-gray-800">
+                  <p className="text-6xl text-gray-800">
                     {weatherData ? Math.round((weatherData.pop ?? 0) * 100) : "--"}%
                   </p>
-                  <p className="text-gray-600 text-lg mt-2">
+                  <p className="text-gray-600 text-base mt-1">
                     Chance of rain
                   </p>
                 </div>

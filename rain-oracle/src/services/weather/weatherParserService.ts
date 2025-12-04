@@ -1,5 +1,5 @@
-import { Gov2HourResponse } from "@/types/weather/gov2hour";
-import { Gov24HourResponse } from "@/types/weather/gov24hour";
+import { Gov2HourForecast, Gov2HourResponse } from "@/types/weather/gov2hour";
+import { Gov24HourForecast, Gov24HourResponse } from "@/types/weather/gov24hour";
 import { OpenWeatherHourlyForecast, OpenWeatherHourlyResponse } from "@/types/weather/openweatherHourly";
 import { UnifiedWeatherForecast } from "@/types/weather/weatherForecast";
 import {
@@ -26,23 +26,31 @@ export function parseWeatherForecast({
   dataGov24h,
   openWeather,
 }: ParseWeatherParams): UnifiedWeatherForecast {
+  const openWeatherForecast: OpenWeatherHourlyForecast | null = openWeather
+    ? parseOpenWeatherForecast(openWeather, datetime)
+    : null;
 
-  let openWeatherForecast: OpenWeatherHourlyForecast | null = null;
-  if (openWeather) {
-    openWeatherForecast = parseOpenWeatherForecast(openWeather, datetime);
-  }
-  
-  console.log(openWeatherForecast);
+  const parseGovForecast = ():
+    | Gov2HourForecast
+    | Gov24HourForecast
+    | null => {
+    if (dataGov2h) {
+      try {
+        return parseGov2HourForecast(dataGov2h, lat, lon);
+      } catch (error) {
+        console.error("Error parsing Gov 2-hour forecast:", error);
+      }
+    } else if (dataGov24h) {
+      try {
+        return parseGov24HourForecast(dataGov24h, lat, lon, datetime);
+      } catch (error) {
+        console.error("Error parsing Gov 24-hour forecast:", error);
+      }
+    } 
+    return null;
+  };
 
-  if (dataGov2h) {
-    const govForecast = parseGov2HourForecast(dataGov2h, lat, lon);
-    return combineWeatherForecasts(govForecast, openWeatherForecast);
-  }
+  const govForecast = parseGovForecast();
 
-  if (dataGov24h) {
-    const govForecast = parseGov24HourForecast(dataGov24h, lat, lon, datetime);
-    return combineWeatherForecasts(govForecast, openWeatherForecast);
-  }
-
-  return combineWeatherForecasts(null, openWeatherForecast);
+  return combineWeatherForecasts(govForecast, openWeatherForecast);
 }
