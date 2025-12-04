@@ -124,3 +124,40 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+.drop {
+  background: linear-gradient(to bottom, rgb(89, 203, 221) 0%, rgba(255,255,255,.6) 100%);
+	width:1px;
+	height:69px;
+  top: -90px;
+	position: absolute;
+	animation: fall .63s linear infinite;
+}
+
+@keyframes fall {
+  from { transform: translateY(-50px); }
+  to { transform: translateY(1000px); }
+}
+
+.lightning {
+  stroke: white;
+  stroke-width: 2;
+  stroke-linecap: round;
+  animation: lightning-appear 0.1s ease-out forwards, lightning-disappear 0.5s ease-in 0.1s forwards;
+}
+
+@keyframes lightning-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lightning-disappear {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes lightning-flash {
+  0% { background: rgba(255, 255, 255, 0.3); }
+  100% { background: rgba(0, 0, 0, 0.7); }
+}
+

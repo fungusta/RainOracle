@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import BackgroundWeather from "@/components/BackgroundWeather";
 
 const locationsByArea = getLocationsByArea();
 
@@ -140,7 +141,8 @@ export default function App() {
   }, [isDragging]);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100">
+    <div className="relative w-full h-screen overflow-hidden">
+      <BackgroundWeather weatherData={weatherData} />
       {/* Content */}
       <div className="relative z-10 flex items-center justify-center h-full px-4">
         {!showWeather ? (

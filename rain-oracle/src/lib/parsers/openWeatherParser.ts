@@ -8,7 +8,7 @@ export function parseOpenWeatherForecast(data: OpenWeatherHourlyResponse, dateti
     
     const targetTimestamp = Math.floor(datetime.getTime() / 1000);
     
-    // Find the forecast item closest to the given datetime
+    // Find the forecast item closest to the given datetime (Usually the first item)
     const closestItem = data.list.reduce((closest, current) => {
         return Math.abs(current.dt - targetTimestamp) < Math.abs(closest.dt - targetTimestamp) 
             ? current 
@@ -16,8 +16,7 @@ export function parseOpenWeatherForecast(data: OpenWeatherHourlyResponse, dateti
     }, data.list[0]);
     
     const weatherCondition = closestItem.weather?.[0];
-    
-    console.log(weatherCondition);
+
     return {
         temp: convertKelvinToCelsius(closestItem.main.temp),
         feels_like: convertKelvinToCelsius(closestItem.main.feels_like),
