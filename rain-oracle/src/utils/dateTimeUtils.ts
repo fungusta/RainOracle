@@ -86,3 +86,12 @@ export function formatDateTime(date: Date): string {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 
+/**
+ * Checks if the given hour is during daytime
+ * @param hour - The hour of the day (0-23)
+ * @returns true if the hour is during daytime, false otherwise
+ */
+export function isDaytime(hour: number): boolean {
+  return hour >= 7 && hour < 19;
+}
+

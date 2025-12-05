@@ -3,7 +3,7 @@ interface RainProps {
     className?: string;
 }
 
-export default function Rain({ intensity = 0.7, className }: RainProps) {
+export default function Rain({ intensity = 0.5, className }: RainProps) {
     const drops = Array.from({ length: intensity * 100 });
 
     return (

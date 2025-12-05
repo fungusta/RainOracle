@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { Sun, CloudRain, Check, ChevronsUpDown } from "lucide-react";
-import { getTimeString, isTomorrow, getHoursFromNow, getCurrentHour, hourToDateTime } from "@/utils/dateTimeUtils";
+import { CloudRain, Check, ChevronsUpDown } from "lucide-react";
+import { getTimeString, isTomorrow, getHoursFromNow, getCurrentHour, hourToDateTime, isDaytime } from "@/utils/dateTimeUtils";
 import { UnifiedWeatherForecast } from "@/types/weather/weatherForecast";
 import { getCoordinatesFromLocation, getLocationsByArea, LocationName } from "@/utils/location";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import BackgroundWeather from "@/components/BackgroundWeather";
+import DynamicIcon from "@/components/DynamicIcon";
+import { getConditionGroup } from "@/types/weather/weatherCondition";
 
 const locationsByArea = getLocationsByArea();
 
@@ -18,7 +20,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [selectedLocationName, setSelectedLocationName] = useState<LocationName>();
-  const [selectedHour, setSelectedHour] = useState(getCurrentHour()); // Default to noon, will be set on client
+  const [selectedHour, setSelectedHour] = useState(getCurrentHour());
   const [isDragging, setIsDragging] = useState(false);
   const [weatherData, setWeatherData] = useState<UnifiedWeatherForecast | null>(null);
   const [comboboxOpen, setComboboxOpen] = useState(false);
@@ -140,9 +142,20 @@ export default function App() {
     }
   }, [isDragging]);
 
+  const displayHour = showWeather ? selectedHour : currentHour;
+  const isDisplayDaytime = isDaytime(displayHour);
+
+  useEffect(() => {
+    if (!isDisplayDaytime) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDisplayDaytime]);
+
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      <BackgroundWeather weatherData={weatherData} />
+    <div className={`relative w-full h-screen overflow-hidden ${!isDisplayDaytime ? 'dark' : ''}`}>
+      <BackgroundWeather weatherData={weatherData} isDaytime={isDisplayDaytime} />
       {/* Content */}
       <div className="relative z-10 flex items-center justify-center h-full px-4">
         {!showWeather ? (
@@ -155,7 +168,7 @@ export default function App() {
                   variant="outline"
                   role="combobox"
                   aria-expanded={comboboxOpen}
-                  className="w-[280px] justify-between glass text-gray-700 shadow-lg transition-all duration-300"
+                  className="w-[280px] justify-between glass text-gray-700 dark:text-gray-200 shadow-lg transition-all duration-300"
                 >
                   {selectedLocationName ?? "Select a location..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
@@ -163,10 +176,10 @@ export default function App() {
               </PopoverTrigger>
               <PopoverContent className="w-[280px] p-0 glass shadow-2xl">
                 <Command className="bg-transparent">
-                  <CommandInput placeholder="Search location..." className="border-b border-white/30" />
-                  <CommandList className="max-h-[300px]">
-                    <CommandEmpty className="text-gray-600">No location found.</CommandEmpty>
-                    <CommandGroup heading="Central" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                  <CommandInput placeholder="Search location..." className="border-b border-white/30 dark:text-white dark:placeholder:text-white/70" />
+                    <CommandList className="max-h-[300px]">
+                    <CommandEmpty className="text-gray-600 dark:text-white">No location found.</CommandEmpty>
+                    <CommandGroup heading="Central" className="[&_[cmdk-group-heading]]:text-sky-700 dark:[&_[cmdk-group-heading]]:text-sky-400 [&_[cmdk-group-heading]]:font-semibold">
                       {locationsByArea.central.map((loc) => (
                         <CommandItem
                           key={loc}
@@ -175,14 +188,14 @@ export default function App() {
                             handleLocationChange(value);
                             setComboboxOpen(false);
                           }}
-                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                          className="text-gray-700 dark:text-white hover:bg-white/50 dark:hover:bg-white/20 data-[selected=true]:bg-white/60 dark:data-[selected=true]:bg-white/30 cursor-pointer"
                         >
                           <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
                           {loc}
                         </CommandItem>
                       ))}
                     </CommandGroup>
-                    <CommandGroup heading="North" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                    <CommandGroup heading="North" className="[&_[cmdk-group-heading]]:text-sky-700 dark:[&_[cmdk-group-heading]]:text-sky-400 [&_[cmdk-group-heading]]:font-semibold">
                       {locationsByArea.north.map((loc) => (
                         <CommandItem
                           key={loc}
@@ -191,14 +204,14 @@ export default function App() {
                             handleLocationChange(value);
                             setComboboxOpen(false);
                           }}
-                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                          className="text-gray-700 dark:text-white hover:bg-white/50 dark:hover:bg-white/20 data-[selected=true]:bg-white/60 dark:data-[selected=true]:bg-white/30 cursor-pointer"
                         >
                           <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
                           {loc}
                         </CommandItem>
                       ))}
                     </CommandGroup>
-                    <CommandGroup heading="South" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                    <CommandGroup heading="South" className="[&_[cmdk-group-heading]]:text-sky-700 dark:[&_[cmdk-group-heading]]:text-sky-400 [&_[cmdk-group-heading]]:font-semibold">
                       {locationsByArea.south.map((loc) => (
                         <CommandItem
                           key={loc}
@@ -207,14 +220,14 @@ export default function App() {
                             handleLocationChange(value);
                             setComboboxOpen(false);
                           }}
-                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                          className="text-gray-700 dark:text-white hover:bg-white/50 dark:hover:bg-white/20 data-[selected=true]:bg-white/60 dark:data-[selected=true]:bg-white/30 cursor-pointer"
                         >
                           <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
                           {loc}
                         </CommandItem>
                       ))}
                     </CommandGroup>
-                    <CommandGroup heading="East" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                    <CommandGroup heading="East" className="[&_[cmdk-group-heading]]:text-sky-700 dark:[&_[cmdk-group-heading]]:text-sky-400 [&_[cmdk-group-heading]]:font-semibold">
                       {locationsByArea.east.map((loc) => (
                         <CommandItem
                           key={loc}
@@ -223,14 +236,14 @@ export default function App() {
                             handleLocationChange(value);
                             setComboboxOpen(false);
                           }}
-                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                          className="text-gray-700 dark:text-white hover:bg-white/50 dark:hover:bg-white/20 data-[selected=true]:bg-white/60 dark:data-[selected=true]:bg-white/30 cursor-pointer"
                         >
                           <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
                           {loc}
                         </CommandItem>
                       ))}
                     </CommandGroup>
-                    <CommandGroup heading="West" className="[&_[cmdk-group-heading]]:text-sky-700 [&_[cmdk-group-heading]]:font-semibold">
+                    <CommandGroup heading="West" className="[&_[cmdk-group-heading]]:text-sky-700 dark:[&_[cmdk-group-heading]]:text-sky-400 [&_[cmdk-group-heading]]:font-semibold">
                       {locationsByArea.west.map((loc) => (
                         <CommandItem
                           key={loc}
@@ -239,7 +252,7 @@ export default function App() {
                             handleLocationChange(value);
                             setComboboxOpen(false);
                           }}
-                          className="text-gray-700 hover:bg-white/50 data-[selected=true]:bg-white/60 cursor-pointer"
+                          className="text-gray-700 dark:text-white hover:bg-white/50 dark:hover:bg-white/20 data-[selected=true]:bg-white/60 dark:data-[selected=true]:bg-white/30 cursor-pointer"
                         >
                           <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === loc ? "opacity-100" : "opacity-0")} />
                           {loc}
@@ -349,21 +362,23 @@ export default function App() {
                 )}
 
                 <div className="flex flex-col items-center justify-center gap-1 pointer-events-none">
-                  <Sun
-                    className={`w-12 h-12 text-yellow-400 transition-opacity ${isLoading ? "opacity-50" : ""}`}
-                  />
+                  {isDaytime(selectedHour) ? (
+                    <DynamicIcon icon="day" className={`transition-opacity ${isLoading ? "opacity-50" : ""}`} />
+                  ) : (
+                    <DynamicIcon icon="night" className={`transition-opacity ${isLoading ? "opacity-50" : ""}`} />
+                  )}
                   <span
-                    className={`text-gray-700 transition-opacity ${isLoading ? "opacity-50" : ""}`}
+                    className={`text-gray-700 dark:text-gray-200 transition-opacity ${isLoading ? "opacity-50" : ""}`}
                   >
                     {isLoading ? "Loading..." : "Check Weather"}
                   </span>
                   <div
-                    className={`text-2xl text-gray-800 mt-1 transition-opacity ${isLoading ? "opacity-50" : ""}`}
+                    className={`text-2xl text-gray-800 dark:text-white mt-1 transition-opacity ${isLoading ? "opacity-50" : ""}`}
                   >
                     {getTimeString(selectedHour)}
                   </div>
                   <span
-                    className={`text-xs text-gray-600 transition-opacity ${isLoading ? "opacity-50" : ""}`}
+                    className={`text-xs text-gray-600 dark:text-gray-300 transition-opacity ${isLoading ? "opacity-50" : ""}`}
                   >
                     {(
                       isTomorrow(selectedHour, currentHour) ? (
@@ -388,21 +403,25 @@ export default function App() {
             {/* Temperature Card */}
             <div className="glass rounded-3xl p-8 shadow-2xl min-w-[320px] max-w-[360px] w-full">
               <div className="flex flex-col items-center gap-4">
-                <Sun className="w-12 h-12 text-yellow-400" />
+                {isDaytime(selectedHour) ? (
+                  <DynamicIcon icon={getConditionGroup(weatherData?.forecast ?? "other")} isDaytime={true} />
+                ) : (
+                  <DynamicIcon icon={getConditionGroup(weatherData?.forecast ?? "other")} isDaytime={false} />
+                )}
                 <div className="text-center">
-                  <p className="text-gray-600 text-sm mb-1">
-                    {selectedLocationName} {isTomorrow(selectedHour, currentHour) && <span className="font-semibold text-gray-800">Tomorrow</span>} at {getTimeString(selectedHour)}
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-1">
+                    {selectedLocationName} {isTomorrow(selectedHour, currentHour) && <span className="font-semibold text-gray-800 dark:text-white">Tomorrow</span>} at {getTimeString(selectedHour)}
                   </p>
-                  <p className="text-gray-800 text-xl mb-3">
+                  <p className="text-gray-800 dark:text-white text-xl mb-3">
                     {weatherData?.forecast ?? "Weather data unavailable"}
                   </p>
-                  <p className="text-gray-700 text-lg mb-1">
+                  <p className="text-gray-700 dark:text-gray-200 text-lg mb-1">
                     Temperature
                   </p>
-                  <p className="text-6xl text-gray-800">
+                  <p className="text-6xl text-gray-800 dark:text-white">
                     {weatherData?.temp ? Math.round(weatherData.temp) : "--"}°
                   </p>
-                  <p className="text-gray-600 text-base mt-1">
+                  <p className="text-gray-600 dark:text-gray-300 text-base mt-1">
                     Celsius
                   </p>
                 </div>
@@ -414,13 +433,13 @@ export default function App() {
               <div className="flex flex-col items-center gap-4">
                 <CloudRain className="w-12 h-12 text-blue-400" />
                 <div className="text-center">
-                  <p className="text-gray-700 text-lg mb-1">
+                  <p className="text-gray-700 dark:text-gray-200 text-lg mb-1">
                     Precipitation
                   </p>
-                  <p className="text-6xl text-gray-800">
+                  <p className="text-6xl text-gray-800 dark:text-white">
                     {weatherData ? Math.round((weatherData.pop ?? 0) * 100) : "--"}%
                   </p>
-                  <p className="text-gray-600 text-base mt-1">
+                  <p className="text-gray-600 dark:text-gray-300 text-base mt-1">
                     Chance of rain
                   </p>
                 </div>
@@ -434,7 +453,7 @@ export default function App() {
                 setWeatherData(null);
                 setSelectedHour(getCurrentHour());
               }}
-              className="mt-4 px-8 py-3 glass rounded-xl text-gray-700 transition-all duration-300 hover:bg-white/40 hover:border-white/60"
+              className="mt-4 px-8 py-3 glass rounded-xl text-gray-700 dark:text-gray-200 transition-all duration-300 hover:bg-white/40 hover:border-white/60"
             >
               Back
             </button>

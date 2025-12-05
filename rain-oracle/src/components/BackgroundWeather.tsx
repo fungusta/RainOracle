@@ -5,26 +5,51 @@ import Lightning from "./Lightning";
 
 interface BackgroundWeatherProps {
     weatherData: UnifiedWeatherForecast | null;
+    isDaytime: boolean;
 }
-export default function BackgroundWeather({ weatherData }: BackgroundWeatherProps) {
+export default function BackgroundWeather({ weatherData, isDaytime }: BackgroundWeatherProps) {
     const conditionGroup = weatherData ? getConditionGroup(weatherData.forecast) : "other";
     switch (conditionGroup) {
         case "clear":
-            return <div className="fixed inset-0 bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100"></div>;
+            if (isDaytime) {
+                return <div className="fixed inset-0 bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100"></div>;
+            } else {
+                return <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700"></div>;
+            }
         case "cloudy":
-            return <div className="fixed inset-0 bg-gray-400"></div>;
+            if (isDaytime) {
+                return <div className="fixed inset-0 bg-gray-400"></div>;
+            } else {
+                return <div className="fixed inset-0 bg-gray-900"></div>;
+            }
         case "showers":
-            return <Rain intensity={0.1} className="bg-gray-400" />;
+            if (isDaytime) {
+                return <Rain intensity={0.1} className="bg-gray-400" />;
+            } else {
+                return <Rain intensity={0.1} className="bg-gray-900" />;
+            }
         case "rain":
-            return <Rain intensity={0.7} className="bg-gray-500" />;
+            if (isDaytime) {
+                return <Rain intensity={0.5} className="bg-gray-500" />;
+            } else {
+                return <Rain intensity={0.5} className="bg-gray-900" />;
+            }
         case "thunderstorm":
             return (
                 <>
-                    <Rain intensity={1} className="bg-gray-600" />
+                    {isDaytime ? (
+                        <Rain intensity={1} className="bg-gray-600" />
+                    ) : (
+                        <Rain intensity={1} className="bg-gray-900" />
+                    )}
                     <Lightning />
                 </>
             );
         case "other":
-            return <div className="fixed inset-0 bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100"></div>;
+            if (isDaytime) {
+                return <div className="fixed inset-0 bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100"></div>;
+            } else {
+                return <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700"></div>;
+            }
     }
 }
