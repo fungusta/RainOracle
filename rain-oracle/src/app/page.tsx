@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { CloudRain, Check, ChevronsUpDown } from "lucide-react";
+import { CloudRain, Check, ChevronsUpDown, Loader2, MapPinOff } from "lucide-react";
 import { getTimeString, isTomorrow, getHoursFromNow, getCurrentHour, hourToDateTime, isDaytime } from "@/utils/dateTimeUtils";
 import { UnifiedWeatherForecast } from "@/types/weather/weatherForecast";
-import { getCoordinatesFromLocation, getLocationsByArea, LocationName } from "@/utils/location";
+import { getCoordinatesFromLocation, getLocationsByArea, LocationName, LocationError } from "@/utils/location";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -18,8 +18,10 @@ const locationsByArea = getLocationsByArea();
 export default function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [selectedLocationName, setSelectedLocationName] = useState<LocationName>();
+  const [selectedLocationName, setSelectedLocationName] = useState<LocationName | "Current Location">();
   const [selectedHour, setSelectedHour] = useState(getCurrentHour());
   const [isDragging, setIsDragging] = useState(false);
   const [weatherData, setWeatherData] = useState<UnifiedWeatherForecast | null>(null);
@@ -28,10 +30,31 @@ export default function App() {
 
   const currentHour = getCurrentHour();
 
-  const handleLocationChange = (locationName: string) => {
-    setSelectedLocationName(locationName as LocationName);
-    const coords = getCoordinatesFromLocation(locationName);
-    setLocation(coords);
+  const handleLocationChange = async (locationName: string) => {
+    setLocationError(null);
+    
+    if (locationName === "Current Location") {
+      setSelectedLocationName("Current Location");
+      setIsLocationLoading(true);
+      try {
+        const coords = await getCoordinatesFromLocation(locationName);
+        setLocation(coords);
+      } catch (error) {
+        if (error instanceof LocationError) {
+          setLocationError(error.message);
+        } else {
+          setLocationError("Failed to get your location. Please try again or select a location manually.");
+        }
+        setSelectedLocationName(undefined);
+        setLocation(null);
+      } finally {
+        setIsLocationLoading(false);
+      }
+    } else {
+      setSelectedLocationName(locationName as LocationName);
+      const coords = await getCoordinatesFromLocation(locationName);
+      setLocation(coords);
+    }
   };
 
   const fetchWeatherData = async (): Promise<UnifiedWeatherForecast> => {
@@ -161,6 +184,30 @@ export default function App() {
         {!showWeather ? (
           /* Initial State - Button with Inputs */
           <div className="flex flex-col items-center gap-6">
+            {/* Use Current Location Button */}
+            <Button
+              variant="outline"
+              onClick={() => handleLocationChange("Current Location")}
+              disabled={isLocationLoading}
+              className="glass text-gray-700 dark:text-gray-200 shadow-lg transition-all duration-300 disabled:opacity-60"
+            >
+              {isLocationLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Getting Location...
+                </>
+              ) : (
+                "Use Current Location"
+              )}
+            </Button>
+
+            {/* Location Error Message */}
+            {locationError && (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/20 backdrop-blur-sm border border-red-400/30 text-red-700 dark:text-red-300 max-w-[320px] text-sm text-center">
+                <MapPinOff className="h-5 w-5 flex-shrink-0" />
+                <span>{locationError}</span>
+              </div>
+            )}
             {/* Location Input */}
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
               <PopoverTrigger asChild>
@@ -168,9 +215,17 @@ export default function App() {
                   variant="outline"
                   role="combobox"
                   aria-expanded={comboboxOpen}
-                  className="w-[280px] justify-between glass text-gray-700 dark:text-gray-200 shadow-lg transition-all duration-300"
+                  disabled={isLocationLoading}
+                  className="w-[280px] justify-between glass text-gray-700 dark:text-gray-200 shadow-lg transition-all duration-300 disabled:opacity-60"
                 >
-                  {selectedLocationName ?? "Select a location..."}
+                  {isLocationLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Getting Location...
+                    </>
+                  ) : (
+                    selectedLocationName ?? "Select a location..."
+                  )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
                 </Button>
               </PopoverTrigger>
@@ -179,6 +234,28 @@ export default function App() {
                   <CommandInput placeholder="Search location..." className="border-b border-white/30 dark:text-white dark:placeholder:text-white/70" />
                     <CommandList className="max-h-[300px]">
                     <CommandEmpty className="text-gray-600 dark:text-white">No location found.</CommandEmpty>
+                    <CommandItem
+                      className="text-gray-700 dark:text-white hover:bg-white/50 dark:hover:bg-white/20 data-[selected=true]:bg-white/60 dark:data-[selected=true]:bg-white/30 cursor-pointer"
+                      key="current-location"
+                      value="Current Location"
+                      disabled={isLocationLoading}
+                      onSelect={(value) => {
+                        handleLocationChange(value);
+                        setComboboxOpen(false);
+                      }}
+                    >
+                      {isLocationLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Getting Location...
+                        </>
+                      ) : (
+                        <>
+                          <Check className={cn("mr-2 h-4 w-4 text-sky-600", selectedLocationName === "Current Location" ? "opacity-100" : "opacity-0")} />
+                          Current Location
+                        </>
+                      )}
+                    </CommandItem>
                     <CommandGroup heading="Central" className="[&_[cmdk-group-heading]]:text-sky-700 dark:[&_[cmdk-group-heading]]:text-sky-400 [&_[cmdk-group-heading]]:font-semibold">
                       {locationsByArea.central.map((loc) => (
                         <CommandItem

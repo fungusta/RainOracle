@@ -41,11 +41,17 @@ export function getHoursFromNow(selectedHour: number, currentHour: number): numb
 }
 
 /**
- * Gets the current hour of the day
+ * Gets the current hour of the day rounded to the nearest hour
  * @returns The current hour (0-23)
  */
 export function getCurrentHour(): number {
-  return new Date().getHours();
+  const now = new Date();
+  const minutes = now.getMinutes();
+  if (minutes < 30) {
+    return now.getHours();
+  } else {
+    return now.getHours() + 1;
+  }
 }
 
 /**

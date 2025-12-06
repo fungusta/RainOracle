@@ -46,6 +46,31 @@ export interface LocationInfo {
     area: SingaporeRegion;
 }
 
+export type LocationErrorType = "permission_denied" | "position_unavailable" | "timeout" | "not_supported" | "unknown";
+
+export class LocationError extends Error {
+    type: LocationErrorType;
+    
+    constructor(type: LocationErrorType, message: string) {
+        super(message);
+        this.type = type;
+        this.name = "LocationError";
+    }
+    
+    static fromGeolocationError(error: GeolocationPositionError): LocationError {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                return new LocationError("permission_denied", "Location permission was denied. Please enable location access in your browser settings.");
+            case error.POSITION_UNAVAILABLE:
+                return new LocationError("position_unavailable", "Unable to determine your location. Please try again or select a location manually.");
+            case error.TIMEOUT:
+                return new LocationError("timeout", "Location request timed out. Please try again.");
+            default:
+                return new LocationError("unknown", "An unknown error occurred while getting your location.");
+        }
+    }
+}
+
 /**
  * Mapping of location names to their coordinates and area in Singapore
  */
@@ -122,9 +147,12 @@ export function getLocationsByArea(): Record<SingaporeRegion, LocationName[]> {
  * @param locationName - The name of the location
  * @returns The coordinates (lat, lon) for the location, or null if location not found
  */
-export function getCoordinatesFromLocation(locationName: string): Coordinates | null {
+export async function getCoordinatesFromLocation(locationName: string): Promise<Coordinates | null> {
     if (locationName in LOCATION_COORDINATES) {
         return LOCATION_COORDINATES[locationName as LocationName].coords;
+    } else if (locationName === "Current Location") {
+        const pos = await getUserLocation();
+        return { lat: pos.coords.latitude, lon: pos.coords.longitude };
     }
     return null;
 }
@@ -169,4 +197,23 @@ export function getRegionFromCoordinates(lat: number, lon: number): SingaporeReg
     
     // Default to central
     return "central";
+}
+
+function getUserLocation(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new LocationError("not_supported", "Geolocation is not supported by your browser."));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            resolve,
+            (error) => reject(LocationError.fromGeolocationError(error)),
+            {
+                enableHighAccuracy: true,
+                timeout: 8000,
+                maximumAge: 0
+            }
+        );
+    });
 }
