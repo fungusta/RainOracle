@@ -1,6 +1,9 @@
+
 # 🌧️ **RainOracle**
 
 *A minimalist one-button weather application.*
+
+👉 **Live Website:** https://rainoracle.app
 
 RainOracle gives users instant, frictionless weather updates with a single tap. The app focuses on clarity, speed, and a polished visual experience through dynamic animated backgrounds that reflect real-time weather conditions.
 
